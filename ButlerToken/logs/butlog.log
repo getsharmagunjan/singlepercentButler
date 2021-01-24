@@ -1,0 +1,81 @@
+2020-05-23 09:04:57 INFO  - Loaded other Configurations, ready to return values
+2020-05-23 09:05:01 INFO  - Loaded DB Configurations, ready to return values
+2020-05-23 09:05:01 INFO  - Running Butler Authenticator
+2020-05-23 09:05:01 INFO  - JSON body created.
+2020-05-23 09:05:01 INFO  - Request body created.
+2020-05-23 09:05:03 INFO  - Reponse received for Authentication.
+2020-05-23 09:05:03 INFO  - Response parsing...
+2020-05-23 09:05:03 WARN  - Parsed Value of authorization_code is = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqaGdqZzg3NiQ3ODVidjVANjQ3NTZ2NSZnNyM2OTg3Njc5OHhkIjoiME1GVUZWV0ZJUCIsImV4cCI6MTU5MzgwNDkwMy40OTAzOTV9.gSuKNQ3uqzetUaMGt9e43dMrH-dtH_51skhmog_Q5B4
+2020-05-23 09:05:03 INFO  - Response parsed.
+2020-05-23 09:05:06 INFO  - DB connection established.
+2020-05-23 09:05:06 INFO  - Statement Created
+2020-05-23 09:05:06 INFO  - DB insertion successful
+2020-05-23 09:05:06 INFO  - Finally, Closing Authenticator Resources.
+2020-05-23 09:05:06 INFO  - Successful run Butler Authenticator
+2020-05-23 09:05:06 INFO  - Running Authorization HTML
+2020-05-23 09:05:07 INFO  - DB connection established.
+2020-05-23 09:05:07 INFO  - Authorization code retrived.
+2020-05-23 09:05:09 INFO  - Successfully received html code in response.
+2020-05-23 09:05:09 INFO  - Going to modify html response code
+2020-05-23 09:05:09 INFO  - Successfully modified html response code
+2020-05-23 09:05:09 INFO  - Going to write html code to file.
+2020-05-23 09:05:09 INFO  - Successfully wrote html code to file
+2020-05-23 09:05:09 INFO  - Successful run Authorization HTML
+2020-05-23 09:05:09 INFO  - Running Authorization Token
+2020-05-23 09:05:11 INFO  - Successful run Authorization Token
+2020-05-23 09:05:11 INFO  - Closing Butler Master's resources
+2020-05-23 09:07:38 INFO  - Loaded other Configurations, ready to return values
+2020-05-23 09:07:40 INFO  - Loaded DB Configurations, ready to return values
+2020-05-23 09:07:40 INFO  - Running Access Token Handler
+2020-05-23 09:07:40 INFO  - Reading from file
+2020-05-23 09:07:40 INFO  - Read access token successfully.
+2020-05-23 09:07:40 INFO  - Empty token set after reading token.
+2020-05-23 09:07:42 INFO  - DB connection established.
+2020-05-23 09:07:42 INFO  - Got last authorization code
+2020-05-23 09:07:42 INFO  - Returning PreparedStatement Object for token update
+2020-05-23 09:07:42 INFO  - Received PreparedStatement Object
+2020-05-23 09:07:42 INFO  - Modified PreparedStatement Object
+2020-05-23 09:07:42 INFO  - Successfully updated token
+2020-05-23 09:07:42 INFO  - Garbage Collection
+2020-05-23 09:07:42 INFO  - Successful run Access Token Handler
+2020-05-23 09:07:42 INFO  - Closing Butler Master's resources
+2020-05-23 09:08:43 INFO  - Loaded other Configurations, ready to return values
+2020-05-23 09:08:45 INFO  - Loaded DB Configurations, ready to return values
+2020-05-23 09:08:47 INFO  - DB connection established.
+2020-05-23 09:08:47 INFO  - Access Token Retrived and now, returning the same
+2020-05-23 09:08:47 INFO  - Initiating Google SpreadSheet Handler Resources.
+2020-05-23 09:08:48 INFO  - Google SpreadSheet Handler Resources Initiated.
+2020-05-23 09:08:48 INFO  - Retriving Funds..
+2020-05-23 09:08:49 INFO  - Funds Retrieved Successfully..
+2020-05-23 09:08:49 INFO  - Response parsing...
+2020-05-23 09:08:49 WARN  - Parsed Value of message is = 
+2020-05-23 09:08:49 WARN  - Available Balance is = 1605.28
+2020-05-23 09:08:49 INFO  - Going to update fund
+2020-05-23 09:08:52 INFO  - Funds Updated Successfully
+2020-05-23 09:08:52 INFO  - Closing Funds Handler Resources..
+2020-05-23 13:40:41 INFO  - Loaded other Configurations, ready to return values
+2020-05-23 13:40:43 INFO  - Loaded DB Configurations, ready to return values
+2020-05-23 13:40:43 INFO  - Running Butler Authenticator
+2020-05-23 13:40:43 INFO  - JSON body created.
+2020-05-23 13:40:43 INFO  - Request body created.
+2020-05-23 13:40:44 INFO  - Reponse received for Authentication.
+2020-05-23 13:40:44 INFO  - Response parsing...
+2020-05-23 13:40:44 WARN  - Parsed Value of authorization_code is = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqaGdqZzg3NiQ3ODVidjVANjQ3NTZ2NSZnNyM2OTg3Njc5OHhkIjoiME1GVUZWV0ZJUCIsImV4cCI6MTU5MzgyMTQ0My44MzExMDN9.6FGE-8jMYOBY4qwQbeEW7EnFTm2Ck2TGlIT0o96m2CA
+2020-05-23 13:40:44 INFO  - Response parsed.
+2020-05-23 13:40:46 INFO  - DB connection established.
+2020-05-23 13:40:46 INFO  - Statement Created
+2020-05-23 13:40:46 INFO  - DB insertion successful
+2020-05-23 13:40:46 INFO  - Finally, Closing Authenticator Resources.
+2020-05-23 13:40:46 INFO  - Successful run Butler Authenticator
+2020-05-23 13:40:46 INFO  - Running Authorization HTML
+2020-05-23 13:40:47 INFO  - DB connection established.
+2020-05-23 13:40:47 INFO  - Authorization code retrived.
+2020-05-23 13:40:48 INFO  - Successfully received html code in response.
+2020-05-23 13:40:48 INFO  - Going to modify html response code
+2020-05-23 13:40:48 INFO  - Successfully modified html response code
+2020-05-23 13:40:48 INFO  - Going to write html code to file.
+2020-05-23 13:40:48 INFO  - Successfully wrote html code to file
+2020-05-23 13:40:48 INFO  - Successful run Authorization HTML
+2020-05-23 13:40:48 INFO  - Running Authorization Token
+2020-05-23 13:40:50 INFO  - Successful run Authorization Token
+2020-05-23 13:40:50 INFO  - Closing Butler Master's resources
