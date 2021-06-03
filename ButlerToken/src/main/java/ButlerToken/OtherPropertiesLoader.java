@@ -11,7 +11,8 @@ public class OtherPropertiesLoader //implements AutoCloseable
 {
 	private Logger butlog;
 	//private String other_config_file_location="B:\\Eclipse Workplace\\ButlerToken\\src\\main\\resources\\other_config.xml";
-	private String other_config_file_location="/other_config.xml";
+	//private String other_config_file_location="/other_config.xml";
+	private String other_config_file_location="C:\\butler-system\\butler-resources\\other_config.xml";
 	private static InputStream in;
 	private static final Properties property=new Properties();
 	private static final OtherPropertiesLoader instance= new OtherPropertiesLoader();

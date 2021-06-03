@@ -69,25 +69,29 @@ public class JSONDataAnalyzer
 	}
 	private void analyzeJSONData()
 	{
-		if(((double)(new File(this.nifty50_new_json_data_file_path).length()/1024) > 5.00d))
+		if(!((double)(new File(this.nifty50_new_json_data_file_path).length()/1024) > 5.00d))
 		{
 			this.nifty50_file_path=this.nifty50_new_json_data_file_path;
 			this.getNewNifty50Data(this.nifty50_file_path, 0, 50);
+			this.butlog.info("inside analyze JSON Data IF N50N");
 		}
 		else
 		{
 			this.nifty50_file_path=this.nifty50_old_json_data_file_path;
 			this.getOldNifty50Data(this.nifty50_file_path,0,50);
+			this.butlog.info("inside analyze JSON Data ELSE N50O");
 		}
-		if(((double)(new File(this.nifty100_new_json_data_file_path).length()/1024) > 5.00d))
+		if(!((double)(new File(this.nifty100_new_json_data_file_path).length()/1024) > 5.00d))
 		{
 			this.nifty100_file_path=this.nifty100_new_json_data_file_path;
 			this.getNewNifty100Data(this.nifty100_file_path, 0, 100);
+			this.butlog.info("inside analyze JSON Data IF N100N");
 		}
 		else
 		{
 			this.nifty100_file_path=this.nifty100_old_json_data_file_path;
 			this.getOldNifty100Data(this.nifty100_file_path, 0, 100);
+			this.butlog.info("inside analyze JSON Data ELSE N100O");
 		}
 		//this.butlog.warn(this.nifty50_file_path+"\n"+this.nifty100_file_path);
 	}
@@ -133,7 +137,7 @@ public class JSONDataAnalyzer
 			JSONObject jsonobject=new JSONObject();
 			object=parser.parse(new FileReader(file_path));
 			jsonobject=(JSONObject) object;
-			//this.flattenedJSON=JsonFlattener.flatten(this.jsonobject.toString());
+			//this.flattenedJSON=JsonFlattener.flatten(jsonobject.toString());
 			//this.butlog.warn("Flattened JSON: \n"+this.flattenedJSON);
 			Map<String, Object> flattenedJSONMap=JsonFlattener.flattenAsMap(jsonobject.toString());
 			//flattenedJSONMap.forEach((k,v) -> this.butlog.warn(k+" : "+v));
@@ -168,7 +172,7 @@ public class JSONDataAnalyzer
 			JSONObject jsonobject=new JSONObject();
 			object=parser.parse(new FileReader(file_path));
 			jsonobject=(JSONObject) object;
-			//this.flattenedJSON=JsonFlattener.flatten(this.jsonobject.toString());
+			//this.flattenedJSON=JsonFlattener.flatten(jsonobject.toString());
 			//this.butlog.warn("Flattened JSON: \n"+this.flattenedJSON);
 			Map<String, Object> flattenedJSONMap=JsonFlattener.flattenAsMap(jsonobject.toString());
 			//this.butlog.warn("Flattened JSON:");
@@ -227,36 +231,58 @@ public class JSONDataAnalyzer
 	}
 	public void analyzeDataAndPlaceOrder()
 	{
-		this.analyzeJSONData();
-		this.sheet.updateSheetValues(this.script_names, this.last_traded_prices, this.open_prices, this.high_prices, this.low_prices);
-		String final_order=sheet.getFinalOrder();
-		if(final_order.isEmpty()) { this.butlog.error("Fianl Order is NULL"); }
-		else if(final_order.equalsIgnoreCase("#N/A")) { this.butlog.error("Final Order is #N/A. Need to check Sheet.."); } 
-		else 
-		{ 
-			try
-			{
-				//this.butlog.warn("Final Order is =\n"+final_order);
-				String[] splitted_final_order=final_order.split(";");
-				for(String order : splitted_final_order)
-				{
-					this.orders.add(order);
-				}
-				this.butlog.info("Sending Orders to Order Processor...");
-				/*for(int i=0;i<this.orders.size(); i++)
-				{
-					this.butlog.warn(i+" -> "+this.orders.get(i));
-				}*/
-				this.orderprocessor.processOrder(this.orders);
-			}
-			catch(Exception e)
-			{
-				this.butlog.error("Ërror/Exception in method: analyzeDataAndPlaceOrder() in "+this.getClass().toString()+" is=\n"+ExceptionUtils.getStackTrace(e));
-				System.exit(-1);
-			}
+		try
+		{
+			//this.analyzeJSONData();
+			//this.sheet.updateSheetValues(this.script_names, this.last_traded_prices, this.open_prices, this.high_prices, this.low_prices);
 			
+			//this.butlog.info("Sleeping for 5 seconds");
+			//java.util.concurrent.TimeUnit.SECONDS.sleep(5);
+			//this.butlog.info("Slept for 5 seconds");
+			//String final_order=sheet.getFinalOrder();
+			String final_order;
+			int i=0;
+			do
+			{
+				i++;
+				this.butlog.info("Sleeping for "+i+" time for 5 seconds");
+				java.util.concurrent.TimeUnit.SECONDS.sleep(5);
+				this.butlog.info("Slept for 5 seconds");
+				final_order=sheet.getFinalOrder();
+			}while(final_order.equalsIgnoreCase("#N/A"));
+			
+			if(final_order.isEmpty()) { this.butlog.error("Fianl Order is NULL"); }
+			else if(final_order.equalsIgnoreCase("#N/A")) { this.butlog.error("Final Order is #N/A. Need to check Sheet.."); } 
+			else 
+			{ 
+				try
+				{
+					//this.butlog.warn("Final Order is =\n"+final_order);
+					String[] splitted_final_order=final_order.split(";");
+					for(String order : splitted_final_order)
+					{
+						this.orders.add(order);
+					}
+					this.butlog.info("Sending Orders to Order Processor...");
+					/*for(int i=0;i<this.orders.size(); i++)
+					{
+						this.butlog.warn(i+" -> "+this.orders.get(i));
+					}*/
+					this.orderprocessor.processOrder(this.orders);
+				}
+				catch(Exception e)
+				{
+					this.butlog.error("Ërror/Exception in method: analyzeDataAndPlaceOrder() in "+this.getClass().toString()+" is=\n"+ExceptionUtils.getStackTrace(e));
+					System.exit(-1);
+				}
+				
+			}
 		}
-		
+		catch(Exception e)
+		{
+			this.butlog.error("Ërror/Exception in method: analyzeDataAndPlaceOrder() in "+this.getClass().toString()+" is=\n"+ExceptionUtils.getStackTrace(e));
+			System.exit(-1);
+		}
 	}
 	
 	/*private void tempfunction()

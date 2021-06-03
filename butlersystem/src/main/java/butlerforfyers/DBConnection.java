@@ -27,6 +27,10 @@ public class DBConnection implements AutoCloseable
 	private static String store_order_query;
 	private static String today_symbol_retrieve_query;
 	private static String zero_qty_update_query;
+	private static String update_orders_when_pending_positions_removed;
+	private static String update_orders_when_pending_positions_removed_query;
+	private static String update_orders_when_qty_of_staying_orders_updated;
+	private static String update_orders_when_qty_of_staying_orders_updated_query;
 	private Logger butlog;
 	
 	private static String auth_table_name;
@@ -57,6 +61,10 @@ public class DBConnection implements AutoCloseable
 		username=this.property.getDBPropertyfromPopertyLoader("username");
 		password=this.property.getDBPropertyfromPopertyLoader("password");
 		auth_table_name=this.property.getDBPropertyfromPopertyLoader("auth_table_name");
+		update_orders_when_pending_positions_removed=this.property.getDBPropertyfromPopertyLoader("update_orders_when_pending_positions_removed");
+		update_orders_when_qty_of_staying_orders_updated=this.property.getDBPropertyfromPopertyLoader("update_orders_when_qty_of_staying_orders_updated");
+		update_orders_when_pending_positions_removed_query = "update "+this.property.getDBPropertyfromPopertyLoader("order_table_name")+" "+update_orders_when_pending_positions_removed;
+		update_orders_when_qty_of_staying_orders_updated_query = "update "+this.property.getDBPropertyfromPopertyLoader("order_table_name")+" "+update_orders_when_qty_of_staying_orders_updated;
 		store_order_query="insert into "+this.property.getDBPropertyfromPopertyLoader("order_table_name")+this.property.getDBPropertyfromPopertyLoader("store_order_query");
 		today_symbol_retrieve_query="select "+this.property.getDBPropertyfromPopertyLoader("today_symbol_retrieve_query_attributes")+" from "+this.property.getDBPropertyfromPopertyLoader("order_table_name")+" "+this.property.getDBPropertyfromPopertyLoader("today_symbol_retrieve_query");
 		zero_qty_update_query="update "+this.property.getDBPropertyfromPopertyLoader("order_table_name")+" "+this.property.getDBPropertyfromPopertyLoader("zero_qty_update_query");
@@ -250,7 +258,8 @@ public class DBConnection implements AutoCloseable
 			this.prepstmt=this.con.prepareStatement(today_symbol_retrieve_query);
 			String today=LocalDate.now().toString();
 			this.prepstmt.setString(1, today);
-			//this.prepstmt.setString(1,"2020-05-13"); //remove this after testing and enable above two
+			//this.butlog.warn(prepstmt.toString());
+			//this.prepstmt.setString(1,"2021-05-07"); //remove this after testing and enable above two
 			this.rs=this.prepstmt.executeQuery();
 			this.butlog.info("Retrieved Positions for today..");
 			return this.rs;
@@ -263,17 +272,66 @@ public class DBConnection implements AutoCloseable
 			return null;
 		}
 	}
-	public void updatePositions(String dbbutler_record_id, float running_profit_percentage, float pl, float mod_stoploss)
+	public void updateOrdersWhenPendingPositionsRemoved(String butler_order_id)
 	{
 		try
 		{
 			this.getDBConnetion();
+			this.prepstmt=this.con.prepareStatement(update_orders_when_pending_positions_removed_query);
+			this.prepstmt.setString(1, butler_order_id);
+			int result = this.prepstmt.executeUpdate();
+			if(result==0)
+			{
+				this.butlog.warn("\nTHIS IS A WARNING\nPlease Check that No Removed Script Updated");
+			}
+		}
+		catch(Exception e)
+		{
+			this.butlog.error("Error/Exception in method: updateOrdersWhenPendingPositionsRemoved() in "+this.getClass().toString()+" is=\n"+ExceptionUtils.getStackTrace(e));
+			this.close();
+			System.exit(-1);
+		}
+	}
+	public void updateOrdersWhenQtyOfStayingOrdersUpdated(int updatedQty, String butler_order_id)
+	{
+		try
+		{
+			this.getDBConnetion();
+			this.prepstmt=this.con.prepareStatement(update_orders_when_qty_of_staying_orders_updated_query);
+			this.prepstmt.setInt(1, updatedQty);
+			this.prepstmt.setString(2, butler_order_id);
+			int result = this.prepstmt.executeUpdate();
+			if(result==0)
+			{
+				this.butlog.warn("\nTHIS IS A WARNING\nPlease Check that No updated Qty of Orders Updated");
+			}
+		}
+		catch(Exception e)
+		{
+			this.butlog.error("Error/Exception in method: updateOrdersWhenQtyOfStayingOrdersUpdated() in "+this.getClass().toString()+" is=\n"+ExceptionUtils.getStackTrace(e));
+			this.close();
+			System.exit(-1);
+		}
+	}
+	public void updatePositions(String dbbutler_record_id, float running_profit_percentage, float pl, float mod_stoploss)
+	{
+		try
+		{
+			//this.butlog.warn("Inside updatePositionWhereQtyZero() - Position -1");
+			this.getDBConnetion();
+			//this.butlog.warn("Inside updatePositionWhereQtyZero() - Position 0");
 			this.prepstmt=this.con.prepareStatement(zero_qty_update_query);
+			//this.butlog.warn("Inside updatePositionWhereQtyZero() - Position 1");
 			this.prepstmt.setFloat(1, running_profit_percentage);
+			//this.butlog.warn("Inside updatePositionWhereQtyZero() - Position 2");
 			this.prepstmt.setFloat(2, pl);
+			//this.butlog.warn("Inside updatePositionWhereQtyZero() - Position 3");
 			this.prepstmt.setFloat(3, mod_stoploss);
+			//this.butlog.warn("Inside updatePositionWhereQtyZero() - Position 4");
 			this.prepstmt.setString(4, dbbutler_record_id);
+			//this.butlog.warn("Inside updatePositionWhereQtyZero() - Position 5");
 			int result=this.prepstmt.executeUpdate();
+			//this.butlog.warn("Inside updatePositionWhereQtyZero() - Position 6");
 			if(result==0)
 			{
 				this.butlog.warn("\nTHIS IS A WARNING\nPlease Check that No Script Updated");

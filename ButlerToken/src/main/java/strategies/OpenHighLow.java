@@ -18,7 +18,7 @@ public class OpenHighLow implements AutoCloseable
 	}
 	public void runStrategy()
 	{
-		this.fetch.fetchJSONData();
+		//this.fetch.fetchJSONData();
 		this.process.analyzeDataAndPlaceOrder();
 	}
 	public static void main(String... args)

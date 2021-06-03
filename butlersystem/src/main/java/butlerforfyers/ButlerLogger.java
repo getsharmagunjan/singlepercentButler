@@ -15,9 +15,9 @@ public class ButlerLogger {
 	
 	//public static Logger butlog = LogManager.getLogger(ButlerLogger.class.getName());
 	public static Logger butlog;
-	//private final static String logger_properties_path = "/home/ubuntu/butler-system/butler-resources/log4j2.properties"; //ubuntu file
+	private final static String logger_properties_path = "/butler-system/butler-resources/log4j2.properties"; //ubuntu file
 	//private final static String logger_properties_path = "B:\\resources\\log4j2.properties"; //local file
-	private final static String logger_properties_path = "C:\\butler-system\\butler-resources\\log4j2.properties"; //windows server file
+	//private final static String logger_properties_path = "C:\\butler-system\\butler-resources\\log4j2.properties"; //windows server file
 	//private static OtherPropertiesLoader property=OtherPropertiesLoader.initialize();
 	private static void butlogPropertiesLoader()
 	{

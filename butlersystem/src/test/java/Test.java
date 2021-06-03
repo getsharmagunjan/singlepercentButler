@@ -8,7 +8,10 @@ public class Test
 {
 	public static void main(String... args)
 	{
-		try
+		String symbol = "NSE:TCS-EQ";
+		System.out.println("Symbol is = "+symbol.split("NSE:|-EQ")[1]);
+		
+	/*	try
 		{
 			final String path="B:\\Authorization\\authorization.html";
 			//final String path="/home/ubuntu/butler-system/butler-additional-resources/authorization.html";
@@ -44,11 +47,12 @@ public class Test
 				i=i+0.01f;
 			}while(i<=0.99f);*/
 			
-		}
+	/*	}
 		catch (Exception e)
 		{
 			e.printStackTrace();
-		}
+		} */ 
+		
 	}
 	static float closestInteger(float a, float b) {
 	    float c1 = a - (a % b);

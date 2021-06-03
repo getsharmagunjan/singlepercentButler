@@ -27,6 +27,7 @@ public class RESTConnectionHandler implements AutoCloseable
 	private Request request;
 	private Response response;
 	private OkHttpClient client;
+	private String cancelOrderURL;
 	private OtherPropertiesLoader property=OtherPropertiesLoader.initialize();
 	
 	public RESTConnectionHandler()
@@ -41,6 +42,7 @@ public class RESTConnectionHandler implements AutoCloseable
 		this.response_payload_in_string=null;
 		this.connection=new DBConnection();
 		this.header_authorization_text=this.property.getPropertyValue("header_authorization_text");
+		this.cancelOrderURL=this.property.getPropertyValue("cancel_order_url");
 		if (this.Authorization==null)
 		{
 			this.getAuthorization();
@@ -100,6 +102,33 @@ public class RESTConnectionHandler implements AutoCloseable
 		catch(Exception e)
 		{
 			this.butlog.error("Error/Exception in method: sendRequest(String request_url, String request_payload_in_string) in "+this.getClass().toString()+" is =\n"+ExceptionUtils.getStackTrace(e));
+			this.close();
+			System.exit(-1);
+			return null;
+		}
+	}
+	public List<String> cancelOrder(String request_payload_in_string)
+	{
+		List<String> list_of_string = new ArrayList<String>();
+		try
+		{
+			this.request_payload_in_string=request_payload_in_string;
+			this.butlog.info("Sending request for RESTful Connection (for Cancellation)");
+			this.requestbody=RequestBody.create(JSON, this.request_payload_in_string);
+			this.request=new Request.Builder().header(this.header_authorization_text, this.Authorization).url(this.cancelOrderURL).delete(this.requestbody).build();
+			this.response=this.client.newCall(this.request).execute();
+			this.response_payload_response_code=this.response.code();
+			this.response_payload_in_string=this.response.body().string();
+			this.butlog.warn("CHECK THIS\nCheck cancellation response_payload_in_string ="+this.response_payload_in_string);
+			list_of_string.add(Integer.toString(this.response_payload_response_code));
+			list_of_string.add(this.response_payload_in_string);
+			this.butlog.warn("response code returned by cancellation request = "+list_of_string.get(0)+" message returned by cancellation request = "+list_of_string.get(1));
+			this.butlog.info("Cancellation Request sent and response returned.");
+			return list_of_string;
+		}
+		catch(Exception e)
+		{
+			this.butlog.error("Error/Exception in method: cancelOrder(String request_payload_in_string) in "+this.getClass().toString()+" is =\n"+ExceptionUtils.getStackTrace(e));
 			this.close();
 			System.exit(-1);
 			return null;

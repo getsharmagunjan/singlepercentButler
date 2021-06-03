@@ -1,6 +1,7 @@
+package butlerforfyers;
 //http://localhost:8080/authorization/authorization.html
 
-package butlerforfyers;
+
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
 //import org.apache.logging.log4j.Logger;
@@ -8,8 +9,8 @@ import org.apache.log4j.Logger;
 /*import java.net.HttpURLConnection;
 import java.net.URL;
 import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.util.concurrent.TimeUnit; */
+import java.io.InputStreamReader; */
+import java.util.concurrent.TimeUnit;
 import java.io.File;
 //import java.net.URI;
 //import java.net.URI;
@@ -22,7 +23,7 @@ public class HTMLRunning
 	//private final String host_port="8080";
 	//private final String url_path_after_host_name="/authorization/authorization.html";
 	//private String redirected_url;
-	private String authorization_html_path="B:\\Authorization\\authorization.html";
+	private String authorization_html_path;
 	//private String final_url=null;
 	private Logger butlog=null;
 	//private URL url=null; 
@@ -53,13 +54,13 @@ public class HTMLRunning
 			this.connection= (HttpURLConnection) this.url.openConnection();
 			this.butlog.info("URL connection open with response code ="+this.connection.getResponseCode()+ " and response message ="+this.connection.getResponseMessage());
 			//this.connection.setReadTimeout(5000);
-			this.butlog.info("going to sleep");
-			TimeUnit.MINUTES.sleep(1);
-			this.butlog.info("I just woke up");
 			this.butlog.info("Read timeout set for 5 seconds and remaining are ="+this.connection.getReadTimeout()+" milliseconds.");
 			this.redirected_url=this.connection.getURL().toString();
 			this.butlog.info("The redirected Url is ="+this.redirected_url+"\nResponse Code is ="+this.connection.getResponseCode()); */
 			this.newfile=new File(this.authorization_html_path);
+			this.butlog.info("going to sleep for 10 seconds");
+			TimeUnit.SECONDS.sleep(10);
+			//this.butlog.info("I just woke up");
 			//URI uri=new URL(this.authorization_html_path).toURI();
 			Desktop desktop=Desktop.isDesktopSupported() ? Desktop.getDesktop() : null;
 			this.butlog.warn("is desktop supported = "+Desktop.isDesktopSupported());
@@ -79,6 +80,11 @@ public class HTMLRunning
 			this.butlog.info("method two");
 			rt.exec("rundll32 url.dll,FileProtocolHandler "+this.authorization_html_path);*/
 			//}
+			this.butlog.info("Successfully opened Authorization HTML in browser. Waiting for 1 minute before closing the browser.");
+			TimeUnit.MINUTES.sleep(1);
+			Runtime rt = Runtime.getRuntime();
+			rt.exec("taskkill /F /IM brave.exe");
+			this.butlog.info("Browser Closed");
 		}
 		catch(Exception e)
 		{
@@ -92,4 +98,9 @@ public class HTMLRunning
 		}
 	}
 	
+	public static void main(String args[])
+	{
+		HTMLRunning htmlrunning = new HTMLRunning();
+		htmlrunning.getHTMLRunning();
+	}
 }

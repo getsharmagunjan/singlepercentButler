@@ -1,5 +1,4 @@
 package fundshandlerforfyers;
-
 //import java.io.FileReader;
 import java.util.Map;
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -32,7 +31,7 @@ public class FundsHandler implements AutoCloseable
 	private GoogleSpreadsheetHandler gsheet;
 	private OtherPropertiesLoader property=OtherPropertiesLoader.initialize();
 	
-	FundsHandler()
+	public FundsHandler()
 	{
 		this.butlog=ButlerLogger.getButlerLogger(this.getClass().getName());
 		this.funds_request_url=this.property.getPropertyValue("funds_request_url");
@@ -138,3 +137,4 @@ public class FundsHandler implements AutoCloseable
 		fund.close();
 	}
 }
+

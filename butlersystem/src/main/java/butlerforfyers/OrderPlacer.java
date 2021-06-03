@@ -1,9 +1,11 @@
 package butlerforfyers;
 
+
 import java.util.ArrayList;
 import java.util.List;
 import org.apache.log4j.Logger;
 import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.apache.commons.math3.util.Precision;
 //import org.apache.logging.log4j.Logger;
 
 public class OrderPlacer 
@@ -34,7 +36,9 @@ public class OrderPlacer
 	private float pnl_amount;
 	private String strategy_name;
 	private float mod_stoploss;
-	
+	private String profit_gap_out_of_range_message;
+	private String trigger_gap_out_of_range_message;
+	private String order_not_enabled_message;
 	private Logger butlog;
 	private static DBConnection connection=new DBConnection();
 	private ButlerResponseHandler handler;
@@ -67,6 +71,9 @@ public class OrderPlacer
 		this.strategy_name=null;
 		this.list_of_string=new ArrayList<String>();
 		this.order_request_url=this.property.getPropertyValue("order_request_url");
+		this.profit_gap_out_of_range_message=this.property.getPropertyValue("profit_gap_out_of_range_message");
+		this.trigger_gap_out_of_range_message=this.property.getPropertyValue("trigger_gap_out_of_range_message");
+		this.order_not_enabled_message=this.property.getPropertyValue("order_not_enabled_message");
 		this.response_message_text=this.property.getPropertyValue("response_message_text");
 		this.market_not_connected_message=this.property.getPropertyValue("market_not_connected_message");
 		this.response_id_text=this.property.getPropertyValue("response_id_text");
@@ -115,32 +122,84 @@ public class OrderPlacer
 			this.takeProfit=takeProfit;
 			//this.butlog.warn("Check if Symbol is correct :="+this.symbol);
 			//setting authorization access token.
-			this.request_payload_in_string=this.getRequestParametersInString();
+			this.butlog.warn("##################################################################################################################");
+			this.butlog.warn("###############"+this.symbol+"#################");
 			//this.butlog.warn("Check Request payload in String =\n"+this.request_payload_in_string);
-			this.list_of_string=this.restconnection.sendRequest(this.order_request_url, this.request_payload_in_string);
-			//this.butlog.warn("Check List of String returned is ="+this.list_of_string.toString());
-			this.response_payload_response_code=Integer.parseInt(this.list_of_string.get(0));
-			this.butlog.warn("for symbol = "+symbol);
+			int counter=1;
+			do
+			{
+				this.butlog.warn("counter = "+counter);
+				this.request_payload_in_string=this.getRequestParametersInString();
+				this.list_of_string=this.restconnection.sendRequest(this.order_request_url, this.request_payload_in_string);
+				counter++;
+				this.response_payload_in_string=this.list_of_string.get(1);
+				this.tofind_value=this.handler.getResponseAttribute(this.response_payload_in_string, this.response_message_text);
+				
+				
+				//this.butlog.warn(this.list_of_string.get(0).toString().trim().equalsIgnoreCase("200"));
+				//this.butlog.warn(this.response_payload_in_string);
+				//this.butlog.warn(this.tofind_value);
+				//this.tofind_value="RMS:121052516818:NSE EQUITY 16713 UBL EQ DG00303 B 1 BO 1270.55 TRIGGER GAP IS OUT OF THE SPECIFIED GAP RANGE MAX & MIN TRIGGER GAP RANGE IS -1207.02-1269.91 TRIGGER PRICE-1270";
+				
+				this.order_id=this.handler.getResponseAttribute(this.response_payload_in_string, this.response_id_text);
+				
+				if(this.tofind_value.contains(this.market_not_connected_message))
+				{
+					this.butlog.error(this.market_not_connected_message);
+					break;
+				}
+				else if(this.tofind_value.contains(this.order_not_enabled_message))
+				{
+					break;
+				}
+				else if(this.list_of_string.get(0).toString().trim().equalsIgnoreCase("200"))
+				{
+					break;
+				}
+				else if(this.order_id.isEmpty())
+				{
+					this.butlog.error("Order ID is NULL. Need Manual Intervention..");
+					break;
+				}
+				else if(this.tofind_value.contains(this.profit_gap_out_of_range_message))
+				{
+					float target=this.reCalculateTarget(this.tofind_value, this.side);
+					switch(this.side)
+					{
+					case 1:
+						this.takeProfit=target-this.limitPrice;
+						break;
+					case -1:
+						this.takeProfit=this.limitPrice-target;
+						break;
+					}
+				}
+				else if(this.tofind_value.contains(this.trigger_gap_out_of_range_message))
+				{
+					float newStopPrice=this.reCalculateStopPrice(this.tofind_value);
+					this.stopPrice=newStopPrice;
+					switch(this.side)
+					{
+					case 1:
+						this.limitPrice=this.stopPrice+0.50f;
+						break;
+					case -1:
+						this.limitPrice=this.stopPrice-0.50f;
+					}
+					this.butlog.warn("New StopPrice = "+this.stopPrice);
+					this.butlog.warn("New Limit Price = "+this.limitPrice);
+				}
+				
+			}while(counter<=3);
+			this.butlog.warn("for symbol = "+symbol+"-----------------------------------------------------------------------------");
 			this.butlog.warn("Check Response payload status code ="+this.response_payload_response_code);
-			this.response_payload_in_string=this.list_of_string.get(1);
 			this.butlog.warn("Check response payload in string =\n"+this.response_payload_in_string);
-			this.tofind_value=this.handler.getResponseAttribute(this.response_payload_in_string, this.response_message_text);
-			this.order_id=this.handler.getResponseAttribute(this.response_payload_in_string, this.response_id_text);
-			this.butlog.info("REMOVE THIS: The value of "+this.response_message_text+"is ="+this.tofind_value+" And the Response Status Code is ="+this.response_payload_response_code);
-			if(this.tofind_value.equalsIgnoreCase(this.market_not_connected_message))
-			{
-				this.butlog.error(this.market_not_connected_message);
-			}
-			else if(this.order_id.isEmpty())
-			{
-				this.butlog.error("Order ID is NULL. Need Manual Intervention..");
-			}
-			else
-			{
-				this.storeOrderToDB();
-				this.butlog.info("Finished placing order with Response="+this.response_payload_response_code+".");
-			}
-			
+			this.butlog.warn("REMOVE THIS: The value of "+this.response_message_text+" is ="+this.tofind_value+" And the Response Status Code is ="+this.response_payload_response_code);
+			this.butlog.info("Finished placing order with Response="+this.response_payload_response_code+".");
+			this.butlog.warn("----------------------------------------------------------------------------------------------------");
+			this.butlog.warn("************************************************************************************************************");
+			this.storeOrderToDB();
+					
 		}
 		catch(Exception e)
 		{
@@ -152,10 +211,73 @@ public class OrderPlacer
 			this.list_of_string=null;
 		}
 	}
+	public float reCalculateTarget(String responseMessage, int side)
+	{
+		float valueOne=0.0f;
+		float valueTwo=0.0f;
+		float highValue=0.0f;
+		float lowValue=0.0f;
+		valueOne=Float.parseFloat(responseMessage.split("-")[1].toString());
+		valueTwo=Float.parseFloat(responseMessage.split("-")[2].split(" ")[0].toString());
+		//this.butlog.info("value one = "+valueOne+" value Two = "+valueTwo);
+		if(valueOne>valueTwo)
+		{
+			highValue=valueOne;
+			lowValue=valueTwo;
+		}
+		else
+		{
+			highValue=valueTwo;
+			lowValue=valueOne;
+		}
+		//this.butlog.info("high value = "+highValue+" low value = "+lowValue);
+		if(side==1)
+		{
+			//this.butlog.info("return value  = "+Precision.round(closestModifiedToPointZeroFive(highValue-1,0.05f),2));
+			return Precision.round(closestModifiedToPointZeroFive(highValue-0.05f,0.05f),2);
+		}
+		else
+		{
+			//this.butlog.info("return value  = "+Precision.round(closestModifiedToPointZeroFive(lowValue+1,0.05f),2));
+			return Precision.round(closestModifiedToPointZeroFive(lowValue+0.05f,0.05f),2);
+		}
+	}
+	public float reCalculateStopPrice(String responseMessage)
+	{
+		float valueOne=0.0f;
+		float valueTwo=0.0f;
+		valueOne=Float.parseFloat(responseMessage.split("-")[1].toString());
+		valueTwo=Float.parseFloat(responseMessage.split("-")[2].split(" ")[0].toString());
+		this.butlog.info("value one = "+valueOne+" value Two = "+valueTwo);
+		float diffToOne=this.stopPrice-valueOne;
+		float diffToTwo=this.stopPrice-valueTwo;
+		this.butlog.info("diff one = "+Math.abs(diffToOne)+" diff two = "+Math.abs(diffToTwo));
+		if(Math.abs(diffToOne)<Math.abs(diffToTwo))
+		{
+			return Precision.round(closestModifiedToPointZeroFive(valueOne,0.05f), 2);
+		}
+		else
+		{
+			return Precision.round(closestModifiedToPointZeroFive(valueTwo,0.05f), 2);
+		}
+		
+	}
+	private float closestModifiedToPointZeroFive(float a, float b) 
+	{
+	    float c1 = a - (a % b);
+	    float c2 = (a + b) - (a % b);
+	    if (a - c1 > c2 - a) {
+	        return c2;
+	    } else {
+	        return c1;
+	    }
+	}
 	private void storeOrderToDB()
 	{
 		String order_type=null;
 		String side=null;
+		float calculatedStopLoss=0.0f;
+		float calculatedTakeProfit=0.0f;
 		this.symbol=this.symbol.replaceAll("NSE:", "");
 		this.symbol=symbol.replaceAll("-EQ", "");
 		if(this.tofind_value.contains("Order Submitted Successfully."))
@@ -184,7 +306,18 @@ public class OrderPlacer
 			case 1: side="Buy"; break;
 			case -1: side="Sell"; break;
 			}
-			connection.storeOrderToDB(this.order_id, this.symbol, this.qty, order_type, side, this.productType, this.limitPrice, this.stopPrice, this.disclosedQty, this.validity, this.offlineOrder, this.stopLoss, this.takeProfit, this.tofind_value, this.order_status, this.pnl_percentage, this.strategy_name, this.pnl_amount, this.mod_stoploss,null,null,null,null,null);
+			switch(side)
+			{
+			case "Buy": 
+				calculatedStopLoss=limitPrice-stopLoss;
+				calculatedTakeProfit=limitPrice+takeProfit;
+				break;
+			case "Sell":
+				calculatedStopLoss=limitPrice+stopLoss;
+				calculatedTakeProfit=limitPrice-takeProfit;
+				break;
+			}
+			connection.storeOrderToDB(this.order_id, this.symbol, this.qty, order_type, side, this.productType, this.limitPrice, this.stopPrice, this.disclosedQty, this.validity, this.offlineOrder, calculatedStopLoss, calculatedTakeProfit, this.tofind_value, this.order_status, this.pnl_percentage, this.strategy_name, this.pnl_amount, this.mod_stoploss,null,null,null,null,null);
 			//connection.storeOrderToDB("100001","TEST",10,"Market","Buy","CO",0.0f, 0.0f, 0,"DAY","False",100.50f,0.0f,"This is test record from code",null,null,null,null,null);
 		}
 		catch(Exception e)
@@ -198,6 +331,10 @@ public class OrderPlacer
 	/*public static void main (String args[])
 	{
 		OrderPlacer order=new OrderPlacer();
-		order.placeOrder("BANKINDIA", 1, 2, 1, "CO", 0, 0, 0, "DAY", "False", 180f, 0);
+		//order.placeOrder("BANKINDIA", 1, 2, 1, "CO", 0, 0, 0, "DAY", "False", 1.0f, 100f);
+		order.placeOrder("UBL", 1, 4, 1, "BO", 1270.55f, 1270.05f, 0, "DAY", "False", 1.0f, 100f);
+		//order.stopPrice=1270.05f;
+		//float stopnew = order.reCalculateStopPrice("RMS:121052516818:NSE EQUITY 16713 UBL EQ DG00303 B 1 BO 1270.55 TRIGGER GAP IS OUT OF THE SPECIFIED GAP RANGE MAX & MIN TRIGGER GAP RANGE IS -1207.02-1269.91 TRIGGER PRICE-1270");
+		//order.butlog.info("stopnew = "+stopnew);
 	}*/
 }

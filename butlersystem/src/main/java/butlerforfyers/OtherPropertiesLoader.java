@@ -11,9 +11,9 @@ import org.apache.log4j.Logger;
 public class OtherPropertiesLoader //implements AutoCloseable 
 {
 	private Logger butlog;
-	//private String other_config_file_location="/home/ubuntu/butler-system/butler-resources/other_config.xml"; //ubuntu file
+	private String other_config_file_location="/butler-system/butler-resources/other_config.xml"; //ubuntu file
 	//private String other_config_file_location="B:\\resources\\other_config.xml"; //local file
-	private String other_config_file_location="C:\\butler-system\\butler-resources\\other_config.xml"; //windows server file
+	//private String other_config_file_location="C:\\butler-system\\butler-resources\\other_config.xml"; //windows server file
 	//private String other_config_file_location="/other_config.xml";
 	//private static InputStream in;
 	//private static InputStream in=new InputStream();
@@ -39,6 +39,7 @@ public class OtherPropertiesLoader //implements AutoCloseable
 			in.close();
 			//System.out.println("running 5, inputstream closed");
 			butlog.info("Loaded other Configurations, ready to return values");
+			//butlog.warn(other_config_file_location);
 		}
 		catch (Exception e)
 		{
@@ -67,7 +68,7 @@ public class OtherPropertiesLoader //implements AutoCloseable
 		System.gc();
 	}*/
 	
-	/*public static void main(String args[])
+	public static void main(String args[])
 	{
 		OtherPropertiesLoader loader=OtherPropertiesLoader.initialize();
 				String s;
@@ -77,5 +78,5 @@ public class OtherPropertiesLoader //implements AutoCloseable
 		s=loadernew.getPropertyValue("token_file_location");
 		loader.butlog.warn("token_file_location = "+s);
 		//loader.close();
-	} */
+	} 
 }

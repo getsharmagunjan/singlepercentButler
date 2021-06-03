@@ -11,9 +11,9 @@ import org.apache.log4j.Logger;
 
 public class DBPropertiesLoader 
 {
-	//private static final String db_config_file_name="/home/ubuntu/butler-system/butler-resources/db_config.xml"; //ubuntu file
+	private static final String db_config_file_name="/butler-system/butler-resources/db_config.xml"; //ubuntu file
 	//private static final String db_config_file_name="B:\\resources\\db_config.xml"; //local file
-	private static final String db_config_file_name="C:\\butler-system\\butler-resources\\db_config.xml"; //windows server file
+	//private static final String db_config_file_name="C:\\butler-system\\butler-resources\\db_config.xml"; //windows server file
 	//private static final String db_config_file_name="/db_config.xml";
 	private static DBPropertiesLoader instance=new DBPropertiesLoader();
 	private static Properties properties;

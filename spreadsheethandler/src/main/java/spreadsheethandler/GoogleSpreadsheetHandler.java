@@ -29,9 +29,10 @@ import com.google.api.services.sheets.v4.model.BatchUpdateValuesRequest;
 import com.google.api.services.sheets.v4.model.BatchUpdateValuesResponse;
 import com.google.api.services.sheets.v4.model.UpdateValuesResponse;
 import com.google.api.services.sheets.v4.model.ValueRange;
+import com.google.api.services.sheets.v4.model.AppendValuesResponse;
 
 
-public class GoogleSpreadsheetHandler 
+public class GoogleSpreadsheetHandler implements AutoCloseable
 {
 	//private static final List<String> SCOPES = Collections.singletonList(SheetsScopes.SPREADSHEETS);
 	private static List<String> SCOPES = Arrays.asList(SheetsScopes.SPREADSHEETS);
@@ -49,7 +50,7 @@ public class GoogleSpreadsheetHandler
     private static String range;
     private static String final_order_range;
     private static String fund_range;
-    private static Sheets sheetService;
+    private Sheets sheetService;
     private OtherPropertiesLoader property=OtherPropertiesLoader.initialize();
     //private ValueRange reponse;
     
@@ -67,7 +68,7 @@ public class GoogleSpreadsheetHandler
     		TOKENS_DIRECTORY_PATH=this.property.getPropertyValue("TOKENS_DIRECTORY_PATH");
     		fund_range=this.property.getPropertyValue("fund_range");
     		this.HTTP_TRANSPORT=GoogleNetHttpTransport.newTrustedTransport();
-    		sheetService=new Sheets.Builder(HTTP_TRANSPORT, JSON_FACTORY, getCredentials(HTTP_TRANSPORT))
+    		this.sheetService=new Sheets.Builder(HTTP_TRANSPORT, JSON_FACTORY, getCredentials(HTTP_TRANSPORT))
     	            			.setApplicationName(APPLICATION_NAME)
     	            			.build();
     		this.butlog.info("Google SpreadSheet Handler Resources Initiated.");
@@ -77,6 +78,13 @@ public class GoogleSpreadsheetHandler
     		this.butlog.error("Error/Exception in constructor: OpenHighLow_GoogleSpreadsheetHandler() in "+this.getClass().toString()+" is=\n"+ExceptionUtils.getStackTrace(e));
     		System.exit(-1);
     	}
+    }
+    public void close()
+    {
+    	this.butlog.info("Closing SheetService");
+    	this.sheetService=null;
+    	this.butlog.info("Closed SheetService");
+    	System.gc();
     }
     
     private static Credential getCredentials(final NetHttpTransport HTTP_TRANSPORT) throws IOException {
@@ -118,7 +126,7 @@ public class GoogleSpreadsheetHandler
     		//this.butlog.warn(this.data.get(0));
     		//this.butlog.warn(this.data.get(1));
     		this.batchupdate=new BatchUpdateValuesRequest().setValueInputOption("RAW").setData(this.data);
-    		this.batchResult=sheetService.spreadsheets().values().batchUpdate(spreadsheetId, this.batchupdate).execute();
+    		this.batchResult=this.sheetService.spreadsheets().values().batchUpdate(spreadsheetId, this.batchupdate).execute();
     		if(!this.batchResult.isEmpty())
     		{
     			this.butlog.info("Updated Data to SpreadSheet Successfully.");
@@ -143,7 +151,7 @@ public class GoogleSpreadsheetHandler
     {
     	try
     	{
-    		ValueRange response = sheetService.spreadsheets().values()
+    		ValueRange response = this.sheetService.spreadsheets().values()
             		.get(spreadsheetId, range)
                     .execute();
             List<List<Object>> values = response.getValues();
@@ -183,11 +191,122 @@ public class GoogleSpreadsheetHandler
     	}
     }
     
+    public List<List<Object>> readSheetForPendingPositionHandler(String spreadsheetID, String range)
+    {
+    	List<List<Object>> values=null;
+    	try
+    	{
+    		ValueRange response = this.sheetService.spreadsheets().values().get(spreadsheetID, range).execute();
+    		values = response.getValues();
+    		response=null;
+    		return values;
+    	}
+    	catch (Exception e)
+    	{
+    		this.butlog.error("Error/Exception in method: readSheetForPendingPositionHandler(String spreadsheetID, String range) in "+this.getClass().toString()+" is=\n"+ExceptionUtils.getStackTrace(e));
+    		return values;
+    	}
+    	
+    }
+    
+    public int readCounterOfButlerBOPnLRecords(String spreadsheetId, String range)
+    {
+    	int counter=0;
+    	try
+    	{
+    		ValueRange response = this.sheetService.spreadsheets().values()
+            		.get(spreadsheetId, range)
+                    .execute();
+            List<List<Object>> values = response.getValues();
+            if (values == null || values.isEmpty()) 
+            {
+                //System.out.println("No data found.");
+            	this.butlog.error("No data found in spreadsheet");
+            } 
+            else 
+            {
+                //int i=0;
+                //for (List row : values) 
+                //{
+                    // Print columns A and E, which correspond to indices 0 and 4.
+                	//script_names_in_sheet.add(i, row.get(0).toString());
+                	//this.butlog.info("%s\n"+row+ "\t"+row.get(0).toString());
+                	//i=i+1;
+                //} 
+                /*for(int i=0; i<values.size(); i++)
+                {
+                	script_names_in_sheet.add(i, values.get(i).get(0).toString());
+                }*/
+            	counter = Integer.parseInt(values.get(0).get(0).toString());                
+            }
+            this.butlog.info("readCounterOfButlerBOPnLRecords from SpreadSheet Successfully.");
+            return counter;
+          
+           /* for(int j=0;j<script_names_in_sheet.size();j++)
+            {
+            	this.butlog.warn("script_names("+j+","+script_names_in_sheet.get(j)+")");
+            } */
+            
+    	}
+    	catch(Exception e)
+    	{
+    		this.butlog.error("Error/Exception in method: readCounterOfButlerBOPnLRecords(String spreadsheetId, String range) in "+this.getClass().toString()+" is=\n"+ExceptionUtils.getStackTrace(e));
+    		System.exit(-1);
+    		return counter;
+    	}
+    }
+    public String readDecisionOfButlerBOPnLRecords(String spreadsheetId, String range)
+    {
+    	String decision=null;
+    	try
+    	{
+    		ValueRange response = this.sheetService.spreadsheets().values()
+            		.get(spreadsheetId, range)
+                    .execute();
+            List<List<Object>> values = response.getValues();
+            if (values == null || values.isEmpty()) 
+            {
+                //System.out.println("No data found.");
+            	this.butlog.error("No data found in spreadsheet");
+            } 
+            else 
+            {
+                //int i=0;
+                //for (List row : values) 
+                //{
+                    // Print columns A and E, which correspond to indices 0 and 4.
+                	//script_names_in_sheet.add(i, row.get(0).toString());
+                	//this.butlog.info("%s\n"+row+ "\t"+row.get(0).toString());
+                	//i=i+1;
+                //} 
+                /*for(int i=0; i<values.size(); i++)
+                {
+                	script_names_in_sheet.add(i, values.get(i).get(0).toString());
+                }*/
+            	decision = values.get(0).get(0).toString();                
+            }
+            this.butlog.info("readDecisionOfButlerBOPnLRecords from SpreadSheet Successfully.");
+            return decision;
+          
+           /* for(int j=0;j<script_names_in_sheet.size();j++)
+            {
+            	this.butlog.warn("script_names("+j+","+script_names_in_sheet.get(j)+")");
+            } */
+            
+    	}
+    	catch(Exception e)
+    	{
+    		this.butlog.error("Error/Exception in method: readDecisionOfButlerBOPnLRecords(String spreadsheetId, String range) in "+this.getClass().toString()+" is=\n"+ExceptionUtils.getStackTrace(e));
+    		System.exit(-1);
+    		return decision;
+    	}
+    }
+    
     public String getFinalOrder()
     {
     	try
     	{
-    		ValueRange response = sheetService.spreadsheets().values()
+    		ValueRange response = this.sheetService.spreadsheets().values()
             		.get(spreadsheetId, final_order_range)
                     .execute();
             List<List<Object>> values = response.getValues();
@@ -212,13 +331,100 @@ public class GoogleSpreadsheetHandler
     	}
     }
     
+    public void updateButlerBOPnLRecords(String spreadsheetId, String DateTimeRange, String totalPnLRange, String DateTime, double totalPnL, String counterRange, int counter)
+    {
+    	try
+    	{
+    		this.butlog.info("Going to update DateTime & totalPnL");
+    		ValueRange body=new ValueRange().setValues(Arrays.asList(Arrays.asList(DateTime)));
+    		UpdateValuesResponse result=this.sheetService.spreadsheets().values().update(spreadsheetId, DateTimeRange, body).setValueInputOption("RAW").execute();
+    		if(!result.isEmpty())
+    		{
+    			this.butlog.info("DateTime Updated Successfully");
+    		}
+    		else
+    		{
+    			this.butlog.info("Some problem in updating DateTime. Manual intervention requested...");
+    		}
+    		body=new ValueRange().setValues(Arrays.asList(Arrays.asList(totalPnL)));
+    		result=this.sheetService.spreadsheets().values().update(spreadsheetId, totalPnLRange, body).setValueInputOption("RAW").execute();
+    		if(!result.isEmpty())
+    		{
+    			this.butlog.info("totalPnL Updated Successfully");
+    		}
+    		else
+    		{
+    			this.butlog.info("Some problem in updating totalPnL. Manual intervention requested...");
+    		}
+    		body=new ValueRange().setValues(Arrays.asList(Arrays.asList(counter)));
+    		result=this.sheetService.spreadsheets().values().update(spreadsheetId, counterRange, body).setValueInputOption("RAW").execute();
+    		if(!result.isEmpty())
+    		{
+    			this.butlog.info("counter Updated Successfully");
+    		}
+    		else
+    		{
+    			this.butlog.info("Some problem in updating counter. Manual intervention requested...");
+    		}
+    	}
+    	catch (Exception e)
+    	{
+    		this.butlog.error("Error/Exception in method: updateButlerBOPnLRecords(String spreadsheetId, String DateTimeRange, String totalPnLRange, String DateTime, double totalPnL) in "+this.getClass().toString()+" is=\n"+ExceptionUtils.getStackTrace(e));
+    		System.exit(-1);
+    	}
+    }
+    
+    public void updatePendingPositionHandlerSheet(String spreadsheetId, List<ValueRange> data)
+    {
+    	try
+    	{
+    		this.batchupdate = new BatchUpdateValuesRequest().setValueInputOption("USER_ENTERED").setData(data);
+    		this.batchResult = this.sheetService.spreadsheets().values().batchUpdate(spreadsheetId, this.batchupdate).execute();
+    		if(!this.batchResult.isEmpty())
+    		{
+    			//this.butlog.info("Updated Data to SpreadSheet Successfully.");
+    		}
+    		else
+    		{
+    			this.butlog.error("Data could not be updated to SpreadSheet. Need Manual Inspection.");
+    		}
+    	}
+    	catch (Exception e)
+    	{
+    		this.butlog.error("Error/Exception in method: updatePendingPositionHandlerSheet(String spreadsheetId, List<ValueRange> data) in "+this.getClass().toString()+" is=\n"+ExceptionUtils.getStackTrace(e));
+    		System.exit(-1);
+    	}
+    }
+    
+    public void appendSheetValues(String spreadsheetId, String range, ValueRange data)
+    {
+    	try
+    	{
+    		//this.batchupdate = new BatchUpdateValuesRequest().setValueInputOption("USER_ENTERED").setData(data);
+    		AppendValuesResponse appendResult = this.sheetService.spreadsheets().values().append(spreadsheetId, range, data).setValueInputOption("USER_ENTERED").setInsertDataOption("INSERT_ROWS").setIncludeValuesInResponse(true).execute();
+    		if(!appendResult.isEmpty())
+    		{
+    			this.butlog.info("Appending Data to SpreadSheet Successfully.");
+    		}
+    		else
+    		{
+    			this.butlog.error("Data could not be updated to SpreadSheet. Need Manual Inspection.");
+    		}
+    	}
+    	catch (Exception e)
+    	{
+    		this.butlog.error("Error/Exception in method: appendSheetValues(String spreadsheetId, String range, ValueRange data) in "+this.getClass().toString()+" is=\n"+ExceptionUtils.getStackTrace(e));
+    		System.exit(-1);
+    	}
+    }
+    
     public void updateFunds(double fund)
     {
     	try
     	{
     		this.butlog.info("Going to update fund");
     		ValueRange body=new ValueRange().setValues(Arrays.asList(Arrays.asList(fund)));
-    		UpdateValuesResponse result=sheetService.spreadsheets().values().update(spreadsheetId, fund_range, body).setValueInputOption("RAW").execute();
+    		UpdateValuesResponse result=this.sheetService.spreadsheets().values().update(spreadsheetId, fund_range, body).setValueInputOption("RAW").execute();
     		if(!result.isEmpty())
     		{
     			this.butlog.info("Funds Updated Successfully");
@@ -234,13 +440,14 @@ public class GoogleSpreadsheetHandler
     		System.exit(-1);
     	}
     }
-    /*public static void main(String... args)  
+    public static void main(String... args)  
     {
         // Build a new authorized API client service.
-    	OpenHighLow_GoogleSpreadsheetHandler instance=new OpenHighLow_GoogleSpreadsheetHandler();
+    	GoogleSpreadsheetHandler instance=new GoogleSpreadsheetHandler();
     	//instance.readSheet();
     	//instance.getFinalOrder();
     	instance.updateFunds(2000.00d);
-    }*/
+    	instance.close();
+    }
 }
 
